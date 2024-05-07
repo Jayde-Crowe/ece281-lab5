@@ -24,10 +24,10 @@
 --| ALU OPCODES:
 --|
 --|     ADD     000
---|
---|
---|
---|
+--|     SUB     100
+--|     OR      010
+--|     AND     011
+--|     SHIFT L  101  SHIFT R 001
 --+----------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -35,20 +35,35 @@ library ieee;
 
 
 entity ALU is
--- TODO
+port(
+    -- Inputs
+    i_a : in std_logic_vector (7 downto 0);
+    i_b : in std_logic_vector (7 downto 0);
+    i_sel : in std_logic_vector (2 downto 0);
+    
+    -- Outputs
+    o_flags : out std_logic_vector (2 downto 0);
+    o_results : out std_logic_vector (7 downto 0)
+ );
+      
+
+    
 end ALU;
 
 architecture behavioral of ALU is 
   
 	-- declare components and signals
+	signal w_add_sub : std_logic_vector (7 downto 0) ;
+	--signal w_and : std_logic_vector (7 downto 0);
+	--signal w_or : std_logic_vector (7 downto 0);
+	--signal w_shift : std_logic_vector (7 downto 0);
+	signal w_output : std_logic_vector (7 downto 0);
 
   
 begin
-	-- PORT MAPS ----------------------------------------
 
-	
-	
-	-- CONCURRENT STATEMENTS ----------------------------
+w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when i_sel(0) = '0' else
+             std_logic_vector(unsigned(i_a) - unsigned(i_b));    
 	
 	
 	
