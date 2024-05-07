@@ -31,7 +31,7 @@ port(
         clk : in std_logic;
         btnU : in std_logic;
         btnC : in std_logic;
-        i_sw : in std_logic_vector(7 downto 0);
+        sw : in std_logic_vector(7 downto 0); -- two different sets iof switches...?
         
         
         -- Outputs
@@ -100,11 +100,11 @@ architecture top_basys3_arch of top_basys3 is
              -- Inputs
              i_a : in std_logic_vector (7 downto 0);
              i_b : in std_logic_vector (7 downto 0);
-             i_sel : in std_logic_vector (2 downto 0);
+             i_sel : in std_logic;
              
              -- Outputs
              o_flags : out std_logic_vector (2 downto 0);
-             o_results : out std_logic
+             o_results : out std_logic_vector (7 downto 0)
           );
                
          
@@ -121,6 +121,7 @@ signal w_hund : std_logic_vector (3 downto 0);
 signal w_tens : std_logic_vector (3 downto 0);
 signal w_ones : std_logic_vector (3 downto 0);
 signal w_data : std_logic_vector (3 downto 0);
+signal w_sel : std_logic_vector (3 downto 0);
   
 begin
 	-- PORT MAPS ----------------------------------------
@@ -158,10 +159,30 @@ begin
                         o_data  => w_data,
                         o_sel   => an
                     );
+                    
+          ALU_inst : ALU
+          port map(
+                    i_a => sw,  -- I need help with this
+                    i_b => sw,  -- I need help with this
+                    i_sel => w_sel(0),
+                    o_flags => w_flag,
+                    o_results => w_bin
+         );
 	
 	
 	-- CONCURRENT STATEMENTS ----------------------------
-	
+
+    led(12) <= '0';
+    led(11) <= '0';
+    led(10) <= '0';
+    led(9) <= '0';
+    led(8) <= '0';
+    led(7) <= '0';
+    led(6) <= '0';
+    led(5) <= '0';
+    led(4) <= '0';
+   
+
 	
 	
 end top_basys3_arch;
