@@ -122,9 +122,16 @@ signal w_tens : std_logic_vector (3 downto 0);
 signal w_ones : std_logic_vector (3 downto 0);
 signal w_data : std_logic_vector (3 downto 0);
 signal w_sel : std_logic_vector (3 downto 0);
+signal w_redA : std_logic_vector (7 downto 0);
+signal w_redB : std_logic_vector (7 downto 0);
+signal w_adv : std_logic;
+signal w_state :std_logic_vector (3 downto 0);
   
 begin
 	-- PORT MAPS ----------------------------------------
+	
+		w_reset <= btnU;
+        w_adv <= btnC;
 
     sevenSegDecoder_inst    : sevenSegDecoder
         port map (
@@ -162,8 +169,8 @@ begin
                     
           ALU_inst : ALU
           port map(
-                    i_a => sw,  -- I need help with this
-                    i_b => sw,  -- I need help with this
+                    i_a => w_redA, 
+                    i_b => w_redB,  
                     i_sel => w_sel(0),
                     o_flags => w_flag,
                     o_results => w_bin
@@ -171,7 +178,7 @@ begin
 	
 	
 	-- CONCURRENT STATEMENTS ----------------------------
-
+	
     led(12) <= '0';
     led(11) <= '0';
     led(10) <= '0';
@@ -181,6 +188,32 @@ begin
     led(6) <= '0';
     led(5) <= '0';
     led(4) <= '0';
+    
+    led(15) <= w_flag(2);
+    led(14) <= w_flag(1);
+    led(13) <= w_flag(0);
+    
+    -- Registers
+    regA_proc: process (w_state(0), w_reset)
+    begin
+        if(w_reset = '1') then 
+            w_redA <= "00000000";
+        elsif(rising_edge(w_state(0))) then
+            w_redA <= sw(7 downto 0);
+        end if;   
+     end process;
+     
+     
+     regB_proc : process (w_state(1), w_reset)
+     begin
+        if(w_reset = '1') then
+            w_redB <= "00000000";
+        elsif(rising_edge(w_state(1))) then 
+            w_redB <= sw(7 downto 0);
+        end if;
+     end process;
+        
+            
    
 
 	
