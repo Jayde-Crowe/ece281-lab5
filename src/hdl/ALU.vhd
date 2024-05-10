@@ -24,10 +24,10 @@
 --| ALU OPCODES:
 --|
 --|     ADD     000
---|     SUB     100
+--|     SUB     001
 --|     OR      010
---|     AND     011
---|     SHIFT L  101  SHIFT R 001
+--|     AND     110
+--|     SHIFT L  101  SHIFT R 100
 --+----------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -54,23 +54,32 @@ architecture behavioral of ALU is
   
 	-- declare components and signals
 	signal w_add_sub : std_logic_vector (7 downto 0) ;
-	--signal w_and : std_logic_vector (7 downto 0);
-	--signal w_or : std_logic_vector (7 downto 0);
+	signal w_and : std_logic_vector (7 downto 0);
+	signal w_or : std_logic_vector (7 downto 0);
 	--signal w_shift : std_logic_vector (7 downto 0);
-	signal w_output : std_logic_vector (7 downto 0);
+	--signal w_output : std_logic_vector (7 downto 0);
 	signal w_Cout : std_logic;
+	--signal w_Cout2 : std_logic;
+	--signal w_add : std_logic_vector(7 downto 0);
+	--signal w_results : std_logic_vector(7 downto 0);
 
   
 begin
 
-w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when i_op(0) = '0' else
-             std_logic_vector(unsigned(i_a) - unsigned(i_b));   
+w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when (i_op <= "000") else
+             std_logic_vector(unsigned(i_a) - unsigned(i_b)) when (i_op <= "001");   
              
              
-  w_Cout <= (i_a(7) or i_b(7)) and not(w_add_sub(7));
-  o_flags(0) <= w_Cout;          
+  w_Cout <= ((i_a(7) or i_b(7)) and not(w_add_sub(7)));
+  o_flags(0) <= w_Cout; 
   
+ w_and <= i_a and i_b when (i_op <= "010"); 
+ w_or  <= i_a or i_b when (i_op <= "011");    
+  
+ --w_add <= std_logic_vector(unsigned(i_a) + unsigned(i_b));
 	
-	
+o_results <= w_add_sub when ((i_op <= "000") or (i_op <= "001")) else
+             w_and when (i_op <= "010") else
+             w_or when (i_op <= "011");
 	
 end behavioral;

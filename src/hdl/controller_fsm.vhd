@@ -63,7 +63,7 @@ with f_Q select
     o_cycle <="1000" when stateZero,
               "0100" when stateOne,
               "0010" when stateTwo,
-              "00001" when stateThree;
+              "0001" when stateThree;
               
               
     enable_process : process(i_clk)

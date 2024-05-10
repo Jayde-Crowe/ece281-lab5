@@ -50,14 +50,15 @@ architecture top_basys3_arch of top_basys3 is
         generic ( constant k_WIDTH : natural  := 4); -- bits in input and output
         Port ( i_clk        : in  STD_LOGIC;
                i_reset        : in  STD_LOGIC; -- asynchronous
-               i_D3         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
-               i_D2         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
-               i_D1         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
-               i_D0         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
+               i_sign         : in  STD_LOGIC;
+               i_hund         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
+               i_tens         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
+               i_ones         : in  STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
                o_data        : out STD_LOGIC_VECTOR (k_WIDTH - 1 downto 0);
                o_sel        : out STD_LOGIC_VECTOR (3 downto 0)    -- selected data line (one-cold)
         );
     end component TDM4;
+    
     
     
     component clock_divider is
@@ -73,7 +74,7 @@ architecture top_basys3_arch of top_basys3 is
     component twoscomp_decimal is
         port (
             i_binary: in std_logic_vector(7 downto 0);
-            o_negative: out std_logic;
+            o_negative: out std_logic_vector(3 downto 0);
             o_hundreds: out std_logic_vector(3 downto 0);
             o_tens: out std_logic_vector(3 downto 0);
             o_ones: out std_logic_vector(3 downto 0)
@@ -109,29 +110,123 @@ architecture top_basys3_arch of top_basys3 is
              
          end component ALU;
          
+         component MUX is
+         port(
+             i_input : in std_logic_vector (7 downto 0);
+             i_numA : in std_logic_vector(7 downto 0);
+             i_numB : in std_logic_vector(7 downto 0);
+             i_dec : in std_logic_vector(1 downto 0);
+             o_output : out std_logic_vector (7 downto 0)
+             );
+         end component MUX;
          
+         
+--signal w_reset : std_logic;
+--signal w_clk : std_logic;
+--signal w_flag : std_logic_vector (2 downto 0);
+--signal w_result : std_logic_vector (7 downto 0);
+--signal w_bin : std_logic_vector (7 downto 0);
+--signal w_sign : std_logic_vector (3 downto 0);
+--signal w_hund : std_logic_vector (3 downto 0);
+--signal w_tens : std_logic_vector (3 downto 0);
+--signal w_ones : std_logic_vector (3 downto 0);
+--signal w_data : std_logic_vector (3 downto 0);
+--signal w_sel : std_logic_vector (3 downto 0);
+--signal w_redA : std_logic_vector (7 downto 0);
+--signal w_redB : std_logic_vector (7 downto 0);
+--signal w_adv : std_logic;
+--signal w_state :std_logic_vector (3 downto 0);
+--signal w_cycle : std_logic_vector (3 downto 0);
+
 signal w_reset : std_logic;
-signal w_clk : std_logic;
-signal w_flag : std_logic_vector (2 downto 0);
-signal w_result : std_logic_vector (3 downto 0);
+signal w_adv : std_logic;
+
+signal w_cycle : std_logic_vector (3 downto 0);
+
+signal w_redA : std_logic_vector (7 downto 0);
+signal w_redB : std_logic_vector (7 downto 0);
+--signal w_flags : std_logic_vector (2 downto 0);
+signal w_result : std_logic_vector (7 downto 0);
+
 signal w_bin : std_logic_vector (7 downto 0);
-signal w_sign : std_logic_vector (3 downto 0);
+
+signal w_negative : std_logic;
 signal w_hund : std_logic_vector (3 downto 0);
 signal w_tens : std_logic_vector (3 downto 0);
 signal w_ones : std_logic_vector (3 downto 0);
+
+signal w_clk : std_logic;
+
 signal w_data : std_logic_vector (3 downto 0);
-signal w_sel : std_logic_vector (3 downto 0);
-signal w_redA : std_logic_vector (7 downto 0);
-signal w_redB : std_logic_vector (7 downto 0);
-signal w_adv : std_logic;
-signal w_state :std_logic_vector (3 downto 0);
-signal w_cycle : std_logic_vector (3 downto 0);
-  
+
+
+  signal w_sel :std_logic_vector (3 downto 0);
+
 begin
 	-- PORT MAPS ----------------------------------------
 	
 		w_reset <= btnU;
         w_adv <= btnC;
+        
+        
+        
+         controller_fsm_inst : controller_fsm
+           port map(
+                  i_clk => clk,
+                  i_adv => btnC,
+                  i_reset => btnU,
+                  o_cycle => w_cycle
+           );
+           
+           ALU_inst : ALU
+         port map(
+                   i_a => w_redA, 
+                   i_b => w_redB,  
+                   i_op => sw(2 downto 0),
+                   o_flags => led(15 downto 13),
+                   o_results => w_result
+        );
+        
+         
+        MUX_inst : MUX
+        port map(
+                   i_numA => w_redA,
+                   i_numB => w_redB,
+                   i_input => w_result, 
+                   i_dec => w_cycle (1 downto 0),
+                   o_output => w_bin
+        
+                );
+                
+    twoscomp_decimal_inst   : twoscomp_decimal
+                            port map (
+                                i_binary    => w_bin,
+                                o_negative  => w_negative,
+                                o_hundreds  => w_hund,
+                                o_tens      => w_tens,
+                                o_ones      => w_ones
+                            );
+
+     clock_divider_inst  : clock_divider
+            port map (
+                i_clk   => clk,
+                i_reset => w_reset,
+                o_clk   => w_clk
+            );
+
+                
+    TDM4_inst   : TDM4
+                    port map (
+                        i_clk   => w_clk,
+                        i_reset => btnU,
+                        i_sign    => w_negative,
+                        i_hund    => w_hund,
+                        i_tens    => w_tens,
+                        i_ones    => w_ones,
+                        o_data  => w_data,
+                        o_sel   => w_sel
+                    );
+         
 
     sevenSegDecoder_inst    : sevenSegDecoder
         port map (
@@ -139,50 +234,19 @@ begin
             o_S => seg
         );
         
-     clock_divider_inst  : clock_divider
-            port map (
-                i_clk   => clk,
-                i_reset => w_reset,
-                o_clk   => w_clk
-            );
+
+
             
-    twoscomp_decimal_inst   : twoscomp_decimal
-                port map (
-                    i_binary    => w_bin,
-                    o_negative  => w_sign(0),
-                    o_hundreds  => w_hund,
-                    o_tens      => w_tens,
-                    o_ones      => w_ones
-                );
+
                 
-    TDM4_inst   : TDM4
-                    port map (
-                        i_clk   => w_clk,
-                        i_reset => w_reset,
-                        i_D3    => w_sign,
-                        i_D2    => w_hund,
-                        i_D1    => w_tens,
-                        i_D0    => w_ones,
-                        o_data  => w_data,
-                        o_sel   => an
-                    );
+
                     
-          ALU_inst : ALU
-          port map(
-                    i_a => w_redA, 
-                    i_b => w_redB,  
-                    i_op => sw(2 downto 0),
-                    o_flags => w_flag,
-                    o_results => w_bin
-         );
+
          
-         controller_fsm_inst : controller_fsm
-         port(
-                   i_clk => clk;
-                   i_adv => btnC;
-                   i_reset => btnU;
-                   o_cycle => w_cycle;
+
          
+         
+
 
 	
 	-- CONCURRENT STATEMENTS ----------------------------
@@ -197,32 +261,31 @@ begin
     led(5) <= '0';
     led(4) <= '0';
     
-    led(15) <= w_flag(2);
-    led(14) <= w_flag(1);
-    led(13) <= w_flag(0);
+    led(3 downto 0) <= w_cycle;
     
+ 
     -- Registers
-    regA_proc: process (w_cycle(0), w_reset)
+    regA_proc: process (w_cycle)
     begin
         if(w_reset = '1') then 
             w_redA <= "00000000";
-        elsif(rising_edge(w_state(0))) then
+        elsif(w_cycle="1000") then
             w_redA <= sw(7 downto 0);
         end if;   
      end process;
      
      
-     regB_proc : process (w_cycle(1), w_reset)
+     regB_proc : process (w_cycle)
      begin
         if(w_reset = '1') then
             w_redB <= "00000000";
-        elsif(rising_edge(w_state(1))) then 
+        elsif(w_cycle="0100") then 
             w_redB <= sw(7 downto 0);
         end if;
      end process;
         
             
-   
+   an<=x"E" when w_cycle="0000" else w_sel;
 
 	
 	
