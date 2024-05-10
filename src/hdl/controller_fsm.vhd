@@ -74,7 +74,7 @@ with f_Q select
                     f_Q <= f_Q_next;
                     i_en <= '0';
                 elsif(i_adv = '0' and i_en = '0') then 
-                    i_en <= '1' after 500ms;
+                    i_en <= '1' after 500 ns;
                 elsif(i_reset = '1') then
                     f_Q <= stateZero;
                 end if;

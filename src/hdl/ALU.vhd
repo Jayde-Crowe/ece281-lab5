@@ -56,7 +56,7 @@ architecture behavioral of ALU is
 	signal w_add_sub : std_logic_vector (7 downto 0) ;
 	signal w_and : std_logic_vector (7 downto 0);
 	signal w_or : std_logic_vector (7 downto 0);
-	--signal w_shift : std_logic_vector (7 downto 0);
+	signal w_shift : std_logic_vector (7 downto 0);
 	--signal w_output : std_logic_vector (7 downto 0);
 	signal w_Cout : std_logic;
 	--signal w_Cout2 : std_logic;
@@ -74,12 +74,16 @@ w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when (i_op <= "000
   o_flags(0) <= w_Cout; 
   
  w_and <= i_a and i_b when (i_op <= "010"); 
- w_or  <= i_a or i_b when (i_op <= "011");    
+ w_or  <= i_a or i_b when (i_op <= "011");  
+ 
+ w_shift <= std_logic_vector(shift_left(unsigned(i_A), to_integer(unsigned(i_B(2 downto 0)))))when (i_op <= "100") else
+            std_logic_vector(shift_right(unsigned(i_A), to_integer(unsigned(i_B(2 downto 0)))))when (i_op <= "101");  
   
  --w_add <= std_logic_vector(unsigned(i_a) + unsigned(i_b));
 	
 o_results <= w_add_sub when ((i_op <= "000") or (i_op <= "001")) else
              w_and when (i_op <= "010") else
-             w_or when (i_op <= "011");
+             w_or when (i_op <= "011") else
+             w_shift when ((i_op <= "100") or (i_op <= "101"));
 	
 end behavioral;
