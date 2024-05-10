@@ -39,7 +39,7 @@ port(
     -- Inputs
     i_a : in std_logic_vector (7 downto 0);
     i_b : in std_logic_vector (7 downto 0);
-    i_sel : in std_logic_vector (2 downto 0);
+    i_op : in std_logic_vector (2 downto 0);
     
     -- Outputs
     o_flags : out std_logic_vector (2 downto 0);
@@ -58,12 +58,18 @@ architecture behavioral of ALU is
 	--signal w_or : std_logic_vector (7 downto 0);
 	--signal w_shift : std_logic_vector (7 downto 0);
 	signal w_output : std_logic_vector (7 downto 0);
+	signal w_Cout : std_logic;
 
   
 begin
 
-w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when i_sel(0) = '0' else
-             std_logic_vector(unsigned(i_a) - unsigned(i_b));    
+w_add_sub <= std_logic_vector(unsigned(i_a) + unsigned (i_b)) when i_op(0) = '0' else
+             std_logic_vector(unsigned(i_a) - unsigned(i_b));   
+             
+             
+  w_Cout <= (i_a(7) or i_b(7)) and not(w_add_sub(7));
+  o_flags(0) <= w_Cout;          
+  
 	
 	
 	

@@ -100,20 +100,19 @@ architecture top_basys3_arch of top_basys3 is
              -- Inputs
              i_a : in std_logic_vector (7 downto 0);
              i_b : in std_logic_vector (7 downto 0);
-             i_sel : in std_logic;
+             i_op : in std_logic_vector (2 downto 0);
              
              -- Outputs
              o_flags : out std_logic_vector (2 downto 0);
              o_results : out std_logic_vector (7 downto 0)
           );
-               
-         
              
          end component ALU;
          
+         
 signal w_reset : std_logic;
 signal w_clk : std_logic;
-signal w_flag : std_logic_vector (3 downto 0);
+signal w_flag : std_logic_vector (2 downto 0);
 signal w_result : std_logic_vector (3 downto 0);
 signal w_bin : std_logic_vector (7 downto 0);
 signal w_sign : std_logic_vector (3 downto 0);
@@ -126,6 +125,7 @@ signal w_redA : std_logic_vector (7 downto 0);
 signal w_redB : std_logic_vector (7 downto 0);
 signal w_adv : std_logic;
 signal w_state :std_logic_vector (3 downto 0);
+signal w_cycle : std_logic_vector (3 downto 0);
   
 begin
 	-- PORT MAPS ----------------------------------------
@@ -171,11 +171,19 @@ begin
           port map(
                     i_a => w_redA, 
                     i_b => w_redB,  
-                    i_sel => w_sel(0),
+                    i_op => sw(2 downto 0),
                     o_flags => w_flag,
                     o_results => w_bin
          );
-	
+         
+         controller_fsm_inst : controller_fsm
+         port(
+                   i_clk => clk;
+                   i_adv => btnC;
+                   i_reset => btnU;
+                   o_cycle => w_cycle;
+         
+
 	
 	-- CONCURRENT STATEMENTS ----------------------------
 	
@@ -194,7 +202,7 @@ begin
     led(13) <= w_flag(0);
     
     -- Registers
-    regA_proc: process (w_state(0), w_reset)
+    regA_proc: process (w_cycle(0), w_reset)
     begin
         if(w_reset = '1') then 
             w_redA <= "00000000";
@@ -204,7 +212,7 @@ begin
      end process;
      
      
-     regB_proc : process (w_state(1), w_reset)
+     regB_proc : process (w_cycle(1), w_reset)
      begin
         if(w_reset = '1') then
             w_redB <= "00000000";
