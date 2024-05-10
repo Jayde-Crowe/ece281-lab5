@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../src/hdl/twoscomp_decimal.vhd" \
+"../../../../src/hdl/twoscomp_decimal_tb.vhd" \
+
+# Do not sort compile order
+nosort
